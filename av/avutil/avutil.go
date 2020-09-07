@@ -1,14 +1,14 @@
 package avutil
 
 import (
-	"io"
-	"strings"
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/nareix/joy4/av"
+	"io"
 	"net/url"
 	"os"
 	"path"
+	"strings"
 )
 
 type HandlerDemuxer struct {
@@ -22,7 +22,7 @@ func (self *HandlerDemuxer) Close() error {
 
 type HandlerMuxer struct {
 	av.Muxer
-	w io.WriteCloser
+	w     io.WriteCloser
 	stage int
 }
 
@@ -54,18 +54,18 @@ func (self *HandlerMuxer) Close() (err error) {
 }
 
 type RegisterHandler struct {
-	Ext string
-	ReaderDemuxer func(io.Reader)av.Demuxer
-	WriterMuxer func(io.Writer)av.Muxer
-	UrlMuxer func(string)(bool,av.MuxCloser,error)
-	UrlDemuxer func(string)(bool,av.DemuxCloser,error)
-	UrlReader func(string)(bool,io.ReadCloser,error)
-	Probe func([]byte)bool
-	AudioEncoder func(av.CodecType)(av.AudioEncoder,error)
-	AudioDecoder func(av.AudioCodecData)(av.AudioDecoder,error)
-	ServerDemuxer func(string)(bool,av.DemuxCloser,error)
-	ServerMuxer func(string)(bool,av.MuxCloser,error)
-	CodecTypes []av.CodecType
+	Ext           string
+	ReaderDemuxer func(io.Reader) av.Demuxer
+	WriterMuxer   func(io.Writer) av.Muxer
+	UrlMuxer      func(string) (bool, av.MuxCloser, error)
+	UrlDemuxer    func(string) (bool, av.DemuxCloser, error)
+	UrlReader     func(string) (bool, io.ReadCloser, error)
+	Probe         func([]byte) bool
+	AudioEncoder  func(av.CodecType) (av.AudioEncoder, error)
+	AudioDecoder  func(av.AudioCodecData) (av.AudioDecoder, error)
+	ServerDemuxer func(string) (bool, av.DemuxCloser, error)
+	ServerMuxer   func(string) (bool, av.MuxCloser, error)
+	CodecTypes    []av.CodecType
 }
 
 type Handlers struct {
@@ -86,6 +86,9 @@ func (self *Handlers) openUrl(u *url.URL, uri string) (r io.ReadCloser, err erro
 				if ok, r, err = handler.UrlReader(uri); ok {
 					return
 				}
+			} else {
+				r, err = os.Open(uri)
+				return
 			}
 		}
 		err = fmt.Errorf("avutil: openUrl %s failed", uri)
@@ -167,7 +170,7 @@ func (self *Handlers) Open(uri string) (demuxer av.DemuxCloser, err error) {
 					}
 					demuxer = &HandlerDemuxer{
 						Demuxer: handler.ReaderDemuxer(r),
-						r: r,
+						r:       r,
 					}
 					return
 				}
@@ -196,7 +199,7 @@ func (self *Handlers) Open(uri string) (demuxer av.DemuxCloser, err error) {
 			}
 			demuxer = &HandlerDemuxer{
 				Demuxer: handler.ReaderDemuxer(_r),
-				r: r,
+				r:       r,
 			}
 			return
 		}
@@ -254,7 +257,7 @@ func (self *Handlers) FindCreate(uri string) (handler RegisterHandler, muxer av.
 				}
 				muxer = &HandlerMuxer{
 					Muxer: handler.WriterMuxer(w),
-					w: w,
+					w:     w,
 				}
 				return
 			}
